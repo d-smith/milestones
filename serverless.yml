@@ -1,0 +1,42 @@
+service: milestones
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+
+functions:
+  step1:
+    handler: noop.handler
+
+
+stepFunctions:
+
+  stateMachines:
+    milestones:
+      name: milestones-${opt:stage}
+#      events:
+#        - http:
+#            path: create
+#            method: POST
+#            private: true
+      definition:
+          StartAt: m1
+          States:
+            m1:
+              Type: Pass
+#              Type: Task
+#              Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+              Next: m2
+            m2:
+              Type: Pass
+              Next: m3
+            m3:
+              Type: Pass
+              End: true
+
+
+
+
+plugins:
+  - serverless-step-functions

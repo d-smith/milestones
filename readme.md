@@ -1,0 +1,1 @@
+Notes - use 1.6.1 of the serverless plugin to avoid an error - IamRoleStateMachineExecution - Policy statement must contain resources.
