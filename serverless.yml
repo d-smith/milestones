@@ -4,10 +4,12 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   runtime: nodejs8.10
-
-functions:
-  step1:
-    handler: noop.handler
+  apiKeys:
+    - milestones-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
 
 
 stepFunctions:
@@ -15,11 +17,11 @@ stepFunctions:
   stateMachines:
     milestones:
       name: milestones-${opt:stage}
-#      events:
-#        - http:
-#            path: create
-#            method: POST
-#            private: true
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
       definition:
           StartAt: m1
           States:
