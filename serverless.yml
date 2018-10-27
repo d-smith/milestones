@@ -11,6 +11,9 @@ provider:
       burstLimit: 10
       rateLimit: 5
 
+functions:
+  step3:
+    handler: steps.step3
 
 stepFunctions:
 
@@ -27,14 +30,14 @@ stepFunctions:
           States:
             m1:
               Type: Pass
-#              Type: Task
-#              Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
               Next: m2
             m2:
               Type: Pass
               Next: m3
             m3:
-              Type: Pass
+              Type: Task
+              Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step3"
+              ResultPath: '$.step3'
               End: true
 
 
@@ -42,3 +45,4 @@ stepFunctions:
 
 plugins:
   - serverless-step-functions
+  - serverless-pseudo-parameters
