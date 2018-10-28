@@ -2,6 +2,13 @@
 
 Milestone model using step functions
 
+### SWF Notes
+
+Set up:
+
+* [Register domain](https://docs.aws.amazon.com/cli/latest/reference/swf/register-domain.html)
+* [Register workflow type](https://docs.aws.amazon.com/cli/latest/reference/swf/register-workflow-type.html)
+* [Register activity type](https://docs.aws.amazon.com/cli/latest/reference/swf/register-activity-type.html)
 
 ### Notes
 
