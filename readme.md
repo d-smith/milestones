@@ -2,6 +2,30 @@
 
 Milestone model using step functions
 
+## SWF Set Up
+
+For this example, we are using SWF as a 'shadow' model of a larger process that is implemented by separate step function state machines.
+
+In the context of the demo, we can create the workflow domain, type, and activities.
+
+Register a domain
+
+
+```console
+aws swf register-domain --name e2e --workflow-execution-retention-period-in-days 7
+```
+
+Register a workflow type in the domain:
+
+```console
+aws swf register-workflow-type --domain e2e --name "Milestone Flow 1" --workflow-version "v1"
+```
+
+Register our milestones as activities
+
+```console
+```
+
 ### SWF Notes
 
 Set up:
