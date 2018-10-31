@@ -1,0 +1,22 @@
+service: start
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - start-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+functions:
+  start:
+    handler: start.handler
+    environment:
+      STATE_MACHINE_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:statemachine:process1-${opt:stage, self:provider.stage}"
+
+
+plugins:
+  - serverless-pseudo-parameters
