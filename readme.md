@@ -24,8 +24,25 @@ aws swf register-workflow-type --domain e2e --name "Milestone Flow 1" --workflow
 Register our milestones as activities
 
 ```console
+aws swf register-activity-type --domain e2e --name milestone1 --activity-version 1
+aws swf register-activity-type --domain e2e --name milestone2 --activity-version 1
+aws swf register-activity-type --domain e2e --name milestone3 --activity-version 1
 ```
 
+
+## Notes
+
+### General
+
+Plan:
+
+1. serverless API to initiate the process
+    * start workflow execution
+    * poll for activity task
+    * in activity, start a step function execution
+    * last step of execution - signal
+
+    
 ### SWF Notes
 
 Set up:
