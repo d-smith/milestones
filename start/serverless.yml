@@ -14,6 +14,10 @@ provider:
 functions:
   start:
     handler: start.handler
+    events:
+      - http:
+          path: /start
+          method: POST
     environment:
       STATE_MACHINE_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:statemachine:process1-${opt:stage, self:provider.stage}"
 
