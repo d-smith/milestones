@@ -2,6 +2,11 @@ service: start
 
 provider:
   name: aws
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - 'swf:StartWorkflowExecution'
+      Resource: '*'
   stage: ${opt:stage, 'dev'}
   runtime: nodejs8.10
   apiKeys:
@@ -14,8 +19,16 @@ provider:
 functions:
   start:
     handler: start.handler
+    events:
+      - http:
+          path: create
+          method: POST
+          private: true
     environment:
       STATE_MACHINE_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:statemachine:process1-${opt:stage, self:provider.stage}"
+      WORKFLOW_TYPE: 'Milestone Flow 1'
+      WORKFLOW_DOMAIN: 'e2e'
+      WORKFLOW_VERSION: 'v1'
 
 
 plugins:
