@@ -29,6 +29,12 @@ aws swf register-activity-type --domain e2e --name milestone2 --activity-version
 aws swf register-activity-type --domain e2e --name milestone3 --activity-version 1
 ```
 
+List commands
+
+```console
+aws swf list-domains --registration REGISTERED
+aws swf list-workflow-types --domain e2e --registration-status REGISTERED
+```
 
 ## Notes
 

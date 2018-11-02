@@ -3,6 +3,7 @@ const stateMachineArn = process.env.STATE_MACHINE_ARN;
 const workflowDomain = process.env.WORKFLOW_DOMAIN;
 const workflowType = process.env.WORKFLOW_TYPE;
 const workflowVersion = process.env.WORKFLOW_VERSION;
+const workflowTasklist = process.env.WORKFLOW_TASKLIST;
 
 const AWS = require('aws-sdk');
 const swf = new AWS.SWF();
@@ -22,7 +23,7 @@ module.exports.handler = async (event, context) => {
             },
             childPolicy: 'REQUEST_CANCEL',
             taskList: {
-                name: 'msflow'
+                name: workflowTasklist
             },
             input: '',
             taskStartToCloseTimeout: 'NONE',

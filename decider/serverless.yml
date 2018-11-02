@@ -1,4 +1,4 @@
-service: start
+service: decider
 
 provider:
   name: aws
@@ -9,27 +9,19 @@ provider:
       Resource: '*'
   stage: ${opt:stage, 'dev'}
   runtime: nodejs8.10
-  apiKeys:
-    - start-${opt:stage, self:provider.stage}
-  usagePlan:
-    throttle:
-      burstLimit: 10
-      rateLimit: 5
 
 functions:
   start:
-    handler: start.handler
-    events:
-      - http:
-          path: create
-          method: POST
-          private: true
+    handler: decider.handler
     environment:
       STATE_MACHINE_ARN: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:statemachine:process1-${opt:stage, self:provider.stage}"
       WORKFLOW_TYPE: 'Milestone Flow 1'
       WORKFLOW_DOMAIN: 'e2e'
       WORKFLOW_VERSION: 'v1'
-      WORKFLOW_TASKLIST: 'msflow'
+    events:
+      - schedule:
+          rate: rate(1 minute)
+          enabled: true
 
 
 plugins:
