@@ -33,5 +33,5 @@ module.exports.handler = async (event, context) => {
     console.log(JSON.stringify(response));
 
     console.log(`state machine arn: ${stateMachineArn}`);
-    return 'ok';
+    return {statusCode: 200};
 }
