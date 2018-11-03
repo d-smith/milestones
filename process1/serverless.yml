@@ -20,11 +20,6 @@ stepFunctions:
   stateMachines:
     milestones:
       name: milestones-${opt:stage}
-      events:
-        - http:
-            path: create
-            method: POST
-            private: true
       definition:
           StartAt: m1
           States:
