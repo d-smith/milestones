@@ -26,7 +26,7 @@ module.exports.handler = async (event, context) => {
                 name: workflowTasklist
             },
             input: '',
-            taskStartToCloseTimeout: 'NONE',
+            taskStartToCloseTimeout: '60',
             executionStartToCloseTimeout: `${60 * 60 * 24 * 180}` //180 days in seconds
         }
     ).promise();
