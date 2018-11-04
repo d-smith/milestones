@@ -4,6 +4,8 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   runtime: nodejs8.10
+  environment:
+    WORKFLOW_DOMAIN: 'e2e'
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -19,8 +21,6 @@ provider:
 functions:
   step1:
     handler: steps.step1
-    environment:
-      WORKFLOW_DOMAIN: 'e2e'
   step3:
     handler: steps.step3
 

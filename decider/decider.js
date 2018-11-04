@@ -41,6 +41,30 @@ const firstActivityShouldBeScheduled =  (events) => {
     return reduced.length == 0;
 }
 
+const doRecordSignalAsMarker = (events) => {
+    let eventTypes = _.reduce(events, (acc,e) => {
+        acc.push(e.eventType);
+        return acc;
+    }, []);
+
+    let lastSignalEvent = _.findIndex(eventTypes, (e) => e == 'WorkflowExecutionSignaled');
+    if(lastSignalEvent == -1) {
+        return false;
+    }
+
+    const ignorableEvents = ['DecisionTaskStarted', 'DecisionTaskScheduled', 'DecisionTaskTimedOut'];
+
+    let recordMarker = true;
+    for(var i = lastSignalEvent + 1; i < eventTypes.length; i++) {
+        if(_.indexOf(ignorableEvents, eventTypes[i]) == -1) {
+            recordMarker = false;
+            break;
+        }
+    }
+
+    return recordMarker;
+}
+
 const getExecutionId = (task) => {
     return task.workflowExecution.workflowId;
 };
@@ -89,22 +113,61 @@ const startStepFunctionOrchestration = async (task) => {
     }).promise();
 }
 
+const recordMarker = async (token, events) => {
+    console.log('recordMarker');
+    let lastSignal = _.findLastIndex(events, (e) => {
+        return e.eventType == 'WorkflowExecutionSignaled'
+    })
+
+    if(lastSignal == -1) {
+        throw new Error('No signal to process');
+    }
+
+    let signalEvent = events[lastSignal];
+
+    return await swf.respondDecisionTaskCompleted({
+        taskToken: token,
+        decisions: [
+            {
+                decisionType: 'RecordMarker',
+                recordMarkerDecisionAttributes: {
+                    markerName: signalEvent['workflowExecutionSignaledEventAttributes']['signalName'],
+                    details: signalEvent['workflowExecutionSignaledEventAttributes']['input']
+                }
+            }
+        ]
+    }).promise();
+};
+
 const performDecisionTask = async (task) => {
     console.log(JSON.stringify(task));
     console.log('schedule first activity?')
 
     let createActivity1 = firstActivityShouldBeScheduled(task.events);
+    let recordMilestone = doRecordSignalAsMarker(task.events);
     console.log('createActivity1', createActivity1);
+    console.log('recordMilestone', recordMilestone);
 
-    if(createActivity1 == false) {
-        console.log('no activity to schedule');
+    if(createActivity1 == false && recordMilestone == false) {
+        console.log('no decision available to make');
         return;
     }
 
-    let response = await scheduleFirstActivity(task);
-    console.log(`schedule activity 1 returns ${JSON.stringify(response)}`);
-    let startResponse = await startStepFunctionOrchestration(task);
-    console.log('startResponse', JSON.stringify(startResponse));
+    if(createActivity1) {
+        let response = await scheduleFirstActivity(task);
+        console.log(`schedule activity 1 returns ${JSON.stringify(response)}`);
+        let startResponse = await startStepFunctionOrchestration(task);
+        console.log('startResponse', JSON.stringify(startResponse));
+        return;
+    }
+
+    if(recordMilestone) {
+        let response = recordMarker(task.taskToken, task.events);
+        console.log('record marker response', JSON.stringify(response));
+        return;
+    }
+
+    console.log('expected to return by now...');
     
 };
 
