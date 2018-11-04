@@ -4,6 +4,11 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   runtime: nodejs8.10
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - 'swf:SignalWorkflowExecution'
+      Resource: '*'
   apiKeys:
     - milestones-${opt:stage, self:provider.stage}
   usagePlan:
@@ -12,6 +17,10 @@ provider:
       rateLimit: 5
 
 functions:
+  step1:
+    handler: steps.step1
+    environment:
+      WORKFLOW_DOMAIN: 'e2e'
   step3:
     handler: steps.step3
 
@@ -24,7 +33,9 @@ stepFunctions:
           StartAt: m1
           States:
             m1:
-              Type: Pass
+              Type: Task
+              Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+              ResultPath: '$.step1'
               Next: m2
             m2:
               Type: Pass

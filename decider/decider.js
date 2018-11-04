@@ -21,15 +21,32 @@ const makeid = () => {
 
 const deciderId=makeid();
 
-const firstActivityShouldBeScheduled = async (events) => {
-    let filtered = _.filter(events, (o) => { return o.eventType != 'DecisionTaskStarted'
-                         && o.eventType != 'DecisionTaskScheduled'
-                        && o.eventType != 'DecisionTaskTimedOut' });
-    return filtered.length == 1;
+const firstActivityShouldBeScheduled =  (events) => {
+
+    let reduced = _.reduce(events, function(acc, o) { 
+
+        switch(o.eventType) {
+            case 'WorkflowExecutionStarted':
+            case 'DecisionTaskStarted':
+            case 'DecisionTaskScheduled':
+            case 'DecisionTaskTimedOut':
+                break;
+            default:
+                acc.push(o);
+        }
+
+        return acc;
+    }, []);
+
+    return reduced.length == 0;
 }
 
 const getExecutionId = (task) => {
     return task.workflowExecution.workflowId;
+};
+
+const getRunId = (task) => {
+    return task.workflowExecution.runId;
 };
 
 const scheduleFirstActivity = async (task) => {
@@ -63,21 +80,32 @@ const scheduleFirstActivity = async (task) => {
 
 const startStepFunctionOrchestration = async (task) => {
     let workflowId = getExecutionId(task);
-    console.log('start step function with execution id', workflowId);
+    let runId = getRunId(task);
+    console.log('start step function with wf id and run id', workflowId, ' - ', runId);
     
     return await stepfn.startExecution({
         stateMachineArn: stateMachineArn,
-        input: JSON.stringify({workflowId: workflowId})
+        input: JSON.stringify({workflowId: workflowId, runId: runId})
     }).promise();
 }
 
 const performDecisionTask = async (task) => {
     console.log(JSON.stringify(task));
     console.log('schedule first activity?')
-    if(firstActivityShouldBeScheduled(task.events)) {
-        let response = await scheduleFirstActivity(task);
-        console.log(`schedule activity 1 returns ${JSON.stringify(response)}`);
+
+    let createActivity1 = firstActivityShouldBeScheduled(task.events);
+    console.log('createActivity1', createActivity1);
+
+    if(createActivity1 == false) {
+        console.log('no activity to schedule');
+        return;
     }
+
+    let response = await scheduleFirstActivity(task);
+    console.log(`schedule activity 1 returns ${JSON.stringify(response)}`);
+    let startResponse = await startStepFunctionOrchestration(task);
+    console.log('startResponse', JSON.stringify(startResponse));
+    
 };
 
 const  getDeciderWork = async () => {
@@ -95,10 +123,12 @@ const  getDeciderWork = async () => {
         return;
     }
 
-    await Promise.all([performDecisionTask(response), startStepFunctionOrchestration(response)])
-                    .then((results) => {
-                        console.log('startResult', results[1]);
-                    });
+    await performDecisionTask(response);
+
+//    await Promise.all([performDecisionTask(response), startStepFunctionOrchestration(response)])
+//                    .then((results) => {
+//                        console.log('startResult', results[1]);
+//                    });
 };
 
 const doWork = async () => {
