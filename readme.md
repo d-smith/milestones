@@ -61,3 +61,9 @@ Set up:
 
 * AWS - [CLI docs](https://docs.aws.amazon.com/cli/latest/reference/swf/index.html)
 * Use 1.6.1 of the serverless plugin to avoid an error - IamRoleStateMachineExecution - Policy statement must contain resources. See [this](https://github.com/horike37/serverless-step-functions/issues/146) incident.
+
+### Todo
+
+* Decider - don't just make one decision - see if there are others that can be made too, like record all signals with markers
+* Refactor the marker code (DRY)
+* Create an activity poller to schedule the step functions

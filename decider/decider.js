@@ -102,6 +102,46 @@ const scheduleFirstActivity = async (task) => {
     
 };
 
+const writeMarkersForUnrecordedSignals = (token, events) => {
+    console.log('areThereUnrecordedSignals');
+    //Collect the markers
+    let markers = _.reduce(events, (acc, e) => {
+        if(e.eventType == 'MarkerRecorded') {
+            acc[e.markerRecordedEventAttributes.markerName] = e;
+        }
+        return acc;
+    }, {});
+
+    console.log('markers', markers);
+
+    //Collect signals
+    let signals = _.reduce(events, (acc,e)=> {
+        if(e.eventType == 'WorkflowExecutionSignaled') {
+            acc.push(e);
+        }
+        return acc;
+    }, []);
+
+    console.log('signals', signals);
+
+    let results = [];
+    signals.forEach((s) => {
+        let signalName = s['workflowExecutionSignaledEventAttributes']['signalName'];
+        console.log('marker for ', signalName, '?');
+        if(markers[signalName] == undefined) {
+            console.log('No marker for',signalName);
+            results.push(recordMarkerForEvent(token,s));
+        }
+    });
+
+    Promise.all(results).then((r) => {
+        console.log('record marker results');
+        r.forEach((result) => {
+            console.log(result);
+        })
+    });
+}
+
 const startStepFunctionOrchestration = async (task) => {
     let workflowId = getExecutionId(task);
     let runId = getRunId(task);
@@ -112,6 +152,21 @@ const startStepFunctionOrchestration = async (task) => {
         input: JSON.stringify({workflowId: workflowId, runId: runId})
     }).promise();
 }
+
+const recordMarkerForEvent = async (token, event) => {
+    return await swf.respondDecisionTaskCompleted({
+        taskToken: token,
+        decisions: [
+            {
+                decisionType: 'RecordMarker',
+                recordMarkerDecisionAttributes: {
+                    markerName: event['workflowExecutionSignaledEventAttributes']['signalName'],
+                    details: event['workflowExecutionSignaledEventAttributes']['input']
+                }
+            }
+        ]
+    }).promise();
+};
 
 const recordMarker = async (token, events) => {
     console.log('recordMarker');
@@ -150,6 +205,7 @@ const performDecisionTask = async (task) => {
 
     if(createActivity1 == false && recordMilestone == false) {
         console.log('no decision available to make');
+        await writeMarkersForUnrecordedSignals(task.taskToken, task.events);
         return;
     }
 
