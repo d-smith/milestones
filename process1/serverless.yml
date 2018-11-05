@@ -11,6 +11,10 @@ provider:
       Action:
         - 'swf:SignalWorkflowExecution'
       Resource: '*'
+    - Effect: Allow
+      Action:
+        - 'states:SendTaskSuccess'
+      Resource: '*'  
   apiKeys:
     - milestones-${opt:stage, self:provider.stage}
   usagePlan:
