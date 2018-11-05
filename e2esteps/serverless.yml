@@ -1,0 +1,52 @@
+service: e2e
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - e2e-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+stepFunctions:
+
+  stateMachines:
+    e2e:
+      name: e2e-${opt:stage}
+      events:
+        - http:
+            path: start
+            method: POST
+      definition:
+          StartAt: m1
+          States:
+            m1:
+              Type: Task
+              Resource: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:process1-${self:service}-${opt:stage}"
+              ResultPath: '$.m1'
+              Next: m2
+            m2:
+              Type: Task
+              Resource: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:process2-${self:service}-${opt:stage}"
+              ResultPath: '$.m2'
+              Next: m3
+            m3:
+              Type: Task
+              Resource: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:process3pwd-${self:service}-${opt:stage}"
+              ResultPath: '$.m3'
+              End: true
+
+  activities:
+    - process1-${self:service}-${opt:stage}
+    - process2-${self:service}-${opt:stage}
+    - process3-${self:service}-${opt:stage}
+
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
