@@ -36,7 +36,7 @@ stepFunctions:
               Next: m3
             m3:
               Type: Task
-              Resource: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:process3pwd-${self:service}-${opt:stage}"
+              Resource: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:process3-${self:service}-${opt:stage}"
               ResultPath: '$.m3'
               End: true
 
