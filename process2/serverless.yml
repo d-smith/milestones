@@ -9,12 +9,6 @@ provider:
       Action:
         - 'states:SendTaskSuccess'
       Resource: '*'  
-  apiKeys:
-    - process2-${opt:stage, self:provider.stage}
-  usagePlan:
-    throttle:
-      burstLimit: 10
-      rateLimit: 5
 
 functions:
   step3:

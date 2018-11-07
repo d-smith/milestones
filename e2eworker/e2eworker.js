@@ -15,23 +15,18 @@ const hasData = (o) => {
     return Object.keys(o).length > 0;
 };
 
-const worker1Name = 'worker1-' + makeid();
-const worker2Name = 'worker2-' + makeid();
-const worker3Name = 'worker3-' + makeid();
 
-const startProcess1 = async () => {
-    
-    
 
+const startProcessForActivity = async (workerName, activityArn, stateMachineArn) => {
     let params = {
-        activityArn: process.env.PROCESS1_ARN,
-        workerName: worker1Name
+        activityArn: activityArn,
+        workerName: workerName
     };
 
-    console.log('await activity 1');
+    console.log(workerName, 'await activity');
     let activityData = await stepfunctions.getActivityTask(params).promise();
     console.log('activityData', activityData);
-    if(!hasData(activityData)) {
+    if (!hasData(activityData)) {
         console.log('no data to process');
         return;
     }
@@ -39,8 +34,8 @@ const startProcess1 = async () => {
     let taskToken = activityData['taskToken'];
 
     let startExeParams = {
-        stateMachineArn: process.env.PROCESS1_SM,
-        input: JSON.stringify({taskToken: taskToken})
+        stateMachineArn: stateMachineArn,
+        input: JSON.stringify({ taskToken: taskToken })
     };
 
     let response = await stepfunctions.startExecution(startExeParams).promise();
@@ -48,78 +43,27 @@ const startProcess1 = async () => {
 }
 
 
-const startProcess2 = async () => {
-    
-
-    let params = {
-        activityArn: process.env.PROCESS2_ARN,
-        workerName: worker2Name
-    };
-
-    console.log('await activity 2');
-    let activityData = await stepfunctions.getActivityTask(params).promise();
-    console.log('activityData', activityData);
-    if(!hasData(activityData)) {
-        console.log('no data to process');
-        return;
-    }
-
-    let taskToken = activityData['taskToken'];
-
-    let startExeParams = {
-        stateMachineArn: process.env.PROCESS2_SM,
-        input: JSON.stringify({taskToken: taskToken})
-    };
-
-    let response = await stepfunctions.startExecution(startExeParams).promise();
-    console.log(response)
-}
-
-
-const startProcess3 = async () => {
-    
-
-    let params = {
-        activityArn: process.env.PROCESS3_ARN,
-        workerName: worker3Name
-    };
-
-    console.log('await activity 3');
-    let activityData = await stepfunctions.getActivityTask(params).promise();
-    console.log('activityData', activityData);
-    if(!hasData(activityData)) {
-        console.log('no data to process');
-        return;
-    }
-
-    let taskToken = activityData['taskToken'];
-
-    let startExeParams = {
-        stateMachineArn: process.env.PROCESS3_SM,
-        input: JSON.stringify({taskToken: taskToken})
-    };
-
-    let response = await stepfunctions.startExecution(startExeParams).promise();
-    console.log(response)
-}
 
 const process1StartHandler = async () => {
-    for(;;) {
-        await startProcess1();
+    const worker1Name = 'worker1-' + makeid();
+    for (; ;) {
+        await startProcessForActivity(worker1Name, process.env.PROCESS1_ARN, process.env.PROCESS1_SM);
     }
-} 
+}
 
 const process2StartHandler = async () => {
-    for(;;) {
-        await startProcess2();
+    const worker2Name = 'worker2-' + makeid();
+    for (; ;) {
+        await startProcessForActivity(worker2Name, process.env.PROCESS2_ARN, process.env.PROCESS2_SM);
     }
-} 
+}
 
 const process3StartHandler = async () => {
-    for(;;) {
-        await startProcess3();
+    const worker3Name = 'worker3-' + makeid();
+    for (; ;) {
+        await startProcessForActivity(worker3Name, process.env.PROCESS3_ARN, process.env.PROCESS3_SM);
     }
-} 
+}
 
 const doWork = async () => {
     process1StartHandler();
